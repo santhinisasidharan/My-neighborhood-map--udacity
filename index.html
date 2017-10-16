@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neighborhood Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <!-- CSS -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Side Menu -->
+
+    <div class="side-menu">
+        <h2>My Neighborhood map</h2>
+        <input id="myInput" data-bind="value: filter, valueUpdate: 'afterkeydown',click:$root.closeInfoWindow" placeholder="Search for locations..">
+
+        <ul id="myUL" data-bind="foreach: filteredList">
+             <li data-bind="text: title, click: $root.popupCurrentMarker"></li>
+        </ul>
+
+    </div>
+
+    <!-- Map -->
+    <div class="container-fluid">
+        <div class="side-body">
+            <div id="map"></div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript -->
+    <script src="js/libs/jquery-3.2.1.js"></script>
+    <script src="js/libs/knockout-3.4.2.js"></script>
+    <script defer src="js/app.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=drawing,places,geometry&key=AIzaSyBYvkVXRLD4fJ9MG498fS4dzVVx-y9YjHc&v=3&callback=initMap" onerror="errorHandle()">
+    </script>
+</body>
+</html>
