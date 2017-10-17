@@ -1,51 +1,53 @@
-'use strict';
+/* globals ko */
+/* globals google */
+/* globals $ */
 
 // Initial data
 var locations = [
     {
-        title: 'Kovalam',
+        title: "Kovalam",
         location: {
             lat: 8.400398,
-            lng: 76.978708 
+            lng: 76.978708
     }},
     {
-        title: 'Shangumugham Beach',
+        title: "Shangumugham Beach",
         location: {
             lat: 8.47845,
             lng: 76.911906
     }},
     {
-        title: 'Padmanabhaswamy Temple',
+        title: "Padmanabhaswamy Temple",
         location: {
             lat: 8.482778,
             lng: 76.943591
     }},
     {
-        title: 'Napier Museum',
+        title: "Napier Museum",
         location: {
             lat: 8.508959,
             lng: 76.955176
     }},
     {
-        title: 'Thiruvananthapuram Zoo',
+        title: "Thiruvananthapuram Zoo",
         location: {
             lat: 8.510406,
             lng: 76.955477
     }},
     {
-        title: 'Varkala Beach',
+        title: "Varkala Beach",
         location: {
             lat: 8.735552,
             lng: 76.703167
     }},
     {
-        title: 'Ponmudi',
+        title: "Ponmudi",
         location: {
             lat: 8.759942,
             lng: 77.116875
     }},
      {
-        title: 'Aakulam',
+        title: "Aakulam",
         location: {
             lat: 8.533491,
             lng: 76.904744
@@ -59,8 +61,10 @@ var bounds;
 
 //google maps callback function
 var initMap = function () {
+    "use strict";
+    var self = this;
     // create a new map
-    map = new google.maps.Map(document.getElementById('map'), {
+    map = new google.maps.Map(document.getElementById("map"), {
         center: {lat: 8.524139, lng: 76.936638},
         zoom: 10
     });
@@ -69,13 +73,12 @@ var initMap = function () {
 
     // Add boundaries to fit any view
     bounds = new google.maps.LatLngBounds();
-    var highlightedIcon = makeMarkerIcon('FFFF24');
-    var defaultIcon = makeMarkerIcon('0091ff');
-    
-    // create an array of markers
-    for (var i = 0; i < locations.length; i++) {
-        var title = locations[i].title;
-        var position = locations[i].location;
+
+    self.addMarker = function(loc,i){
+        var highlightedIcon = makeMarkerIcon("FFFF24");
+        var defaultIcon = makeMarkerIcon("0091ff");
+        var title = loc.title;
+        var position = loc.location;
 
         // Creating the marker on each location
         var marker = new google.maps.Marker({
@@ -87,7 +90,7 @@ var initMap = function () {
         });
         
         markers.push(marker);
-        locations[i].marker =marker;
+        loc.marker =marker;
 
         // Two event listeners - one for mouseover, one for mouseout
         marker.addListener('mouseover', function() {
@@ -96,6 +99,10 @@ var initMap = function () {
         marker.addListener('mouseout', function() {
             this.setIcon(defaultIcon);
           });
+    };
+    // create an array of markers
+    for (var i = 0; i < locations.length; i++) {
+        this.addMarker(locations[i],i);
     }
     // Styling the markers, highlight when hover
     // This function takes in a COLOR, and then creates a new marker
@@ -110,13 +117,13 @@ var initMap = function () {
           new google.maps.Point(10, 34),
           new google.maps.Size(21,34));
         return markerImage;
-      };
+      }
 };
 
 
 
 var viewModel = function () {
-    debugger;
+    "use strict";
     var self = this;
     self.filter =ko.observable("");
     self.observableLocations = ko.observableArray([]);
@@ -126,20 +133,27 @@ var viewModel = function () {
     for(var i=0; i<locations.length;i++){
         self.observableLocations.push(locations[i]);
     }
+
+    //click event for marker
+    self.clickMarker = function(clickme){
+        clickme.addListener('click',function(){
+                map.setCenter(clickme.getPosition());
+                self.populateInfoWindow(clickme);
+            });
+
+    };
     
     // Show all markers when map loaded
     self.showListings = function () {
         for (var i = 0; i < markers.length; i++) {
             markers[i].setAnimation(google.maps.Animation.DROP);
             markers[i].setMap(map);
-            markers[i].addListener('click',function(){
-                self.populateInfoWindow(markers[i]);
-            });
+            self.clickMarker(markers[i]);
             bounds.extend(markers[i].position);
         }
         map.fitBounds(bounds);
     };
-        
+
     // Current marker info pops up at selection of location from list
     self.popupCurrentMarker = function (location) {
         for (var i = 0; i < markers.length; i++) {
@@ -230,7 +244,7 @@ var viewModel = function () {
             return newList;
         } 
     });
-}
+};
 ko.applyBindings(new viewModel());
 
 
@@ -238,4 +252,3 @@ ko.applyBindings(new viewModel());
 var errorHandle = function () {
     alert('Could not load Google Maps API');
 };
-
