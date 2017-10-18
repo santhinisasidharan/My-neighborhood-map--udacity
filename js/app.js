@@ -66,14 +66,16 @@ var initMap = function () {
     // create a new map
     map = new google.maps.Map(document.getElementById("map"), {
         center: {lat: 8.524139, lng: 76.936638},
-        zoom: 10
+        zoom: 0,
+        scrollwheel:false
     });
     // Add infoWindow
-    largeInfoWindow = new google.maps.InfoWindow({maxWidth: 200});
+    largeInfoWindow = new google.maps.InfoWindow({maxWidth: 500});
 
     // Add boundaries to fit any view
     bounds = new google.maps.LatLngBounds();
 
+    //create a marker on each location
     self.addMarker = function(loc,i){
         var highlightedIcon = makeMarkerIcon("FFFF24");
         var defaultIcon = makeMarkerIcon("0091ff");
@@ -133,11 +135,42 @@ var viewModel = function () {
     for(var i=0; i<locations.length;i++){
         self.observableLocations.push(locations[i]);
     }
+    //click event for map
+    self.clickMap = function(){
+        map.addListener('click',function(){
+           if (largeInfoWindow) {
+                largeInfoWindow.close();
+                largeInfoWindow = new google.maps.InfoWindow({maxWidth: 350});     
+            }});
+
+    };
+    //click event after map is loaded
+    if(map){
+        self.clickMap();
+            }
+    else {
+        setTimeout(function () {
+        self.clickMap();
+        }, 1000);
+    }
+
+    //animation for markers
+    function addAnimation(marker){
+        if (marker.getAnimation() !== null) {
+            marker.setAnimation(null);
+        } else {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(function () {
+                marker.setAnimation(null);
+            }, 700);
+            }
+        }
 
     //click event for marker
     self.clickMarker = function(clickme){
         clickme.addListener('click',function(){
                 map.setCenter(clickme.getPosition());
+                addAnimation(clickme); 
                 self.populateInfoWindow(clickme);
             });
 
@@ -146,6 +179,7 @@ var viewModel = function () {
     // Show all markers when map loaded
     self.showListings = function () {
         for (var i = 0; i < markers.length; i++) {
+            self.closeInfoWindow();
             markers[i].setAnimation(google.maps.Animation.DROP);
             markers[i].setMap(map);
             self.clickMarker(markers[i]);
@@ -160,6 +194,7 @@ var viewModel = function () {
             if (markers[i].title === location.title) {
                 self.closeInfoWindow();
                 map.setCenter(markers[i].getPosition());
+                addAnimation(markers[i]);
                 return self.populateInfoWindow(markers[i]);
             }
         }
@@ -169,9 +204,11 @@ var viewModel = function () {
     self.closeInfoWindow = function () {
         if (largeInfoWindow) {
             largeInfoWindow.close();
-            largeInfoWindow = new google.maps.InfoWindow({maxWidth: 350});
+            largeInfoWindow = new google.maps.InfoWindow({maxWidth: 500});
         }
     };
+
+    //to show all markers once map is loaded
     if (map){
     self.showListings();
     } else {
@@ -179,10 +216,10 @@ var viewModel = function () {
         self.showListings();
         }, 1000);
     }
-        //Populate the infowindow when marker is clicked
+
+    //Populate the infowindow when marker is clicked
     self.populateInfoWindow = function(marker){
         self.closeInfoWindow();
-
         // load Wikipedia API data
         var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=' + marker.title;
         var wikiRequestTimeout = setTimeout(function(){
@@ -190,7 +227,7 @@ var viewModel = function () {
             largeInfoWindow.setContent(
                 '<strong>Error! </strong><span>Could not load Wikipedia resources!!</span>' +
                 '</div>');
-        }, 20000);
+        }, 3000);
 
         $.ajax({
             url: wikiUrl,
@@ -202,12 +239,14 @@ var viewModel = function () {
                 var articleSummary = response[2];
                 var articleUrl = response[3];
                 //alert(articleList);
-                var contentString= '<h4><strong>' + marker.title + '</strong></h4>' +
+                var contentString=      '<div class="infocontents">'+
+                                        '<h4><strong>' + marker.title + '</strong></h4>' +
                                         '<h5>Details</h5>' +
                                         '<p>' + articleSummary + '</p>' +
                                         '<h5>Click for more information</h5>' +
                                         '<a target="_blank" href="' + articleUrl + '">' + articleUrl + '</a>'+
-                                        '<h6>Source: Wikipedia</h6>';
+                                        '<h6>Source: Wikipedia</h6>'+
+                                        '</div>';
     
                 largeInfoWindow.setContent(contentString);
                     //};
@@ -246,9 +285,8 @@ var viewModel = function () {
     });
 };
 ko.applyBindings(new viewModel());
-
-
 // Handling Google Maps API errors
 var errorHandle = function () {
     alert('Could not load Google Maps API');
 };
+
