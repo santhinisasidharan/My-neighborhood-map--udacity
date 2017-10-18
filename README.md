@@ -8,4 +8,6 @@ Run index.html in your browser.
 # Tools and technologies used
 Google maps API, wikipedia API
 knockout, js , html, css
-Bootstrap downloaded from https://bootstrapious.com/p/bootstrap-sidebar
+
+#Bootstrap
+downloaded from https://bootstrapious.com/p/bootstrap-sidebar
